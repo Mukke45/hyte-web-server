@@ -23,8 +23,17 @@ const getItemById =  (req, res) => {
 };
 
 const postItem = (req, res) => {
-  // TODO: lisää postattu item items-taulukkoon
-  res.json({message: 'item created'});
+  // lisää postattu item items-taulukkoon
+  console.log('postItem request body', req.body);
+  // error if name property is missing
+  if (!req.body.name) {
+    return res.status(400).json({error: "item name missing"});
+  }
+  // new id: add 1 to last id number in the items array
+  const newId = items[items.length-1].id + 1;
+  const newItem = {id: newId, name: req.body.name};
+  items.push(newItem);
+  res.status(201).json({message: 'item created'});
 };
 
 const deleteItem = (req, res) => {
