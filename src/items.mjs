@@ -12,9 +12,9 @@ const getItems = (req, res) => {
 
 // palauta vain se objekti, jonka id vastaa pyydettyä, muuten 404
 const getItemById =  (req, res) => {
-  // console.log('requested item id', req.params.id);
+  console.log('requested item id', req.params.id);
   const itemFound = items.find(item => item.id == req.params.id);
-  // console.log('found item', itemFound);
+  console.log('found item', itemFound);
   if (itemFound) {
     res.json(itemFound);
   } else {
@@ -50,19 +50,32 @@ const deleteItem = (req, res) => {
 };
 
 const putItem = (req, res) => {
-  // TODO: implement modify item
-  const index = items.findIndex(item => item.id == req.params.id);
+  const itemId = req.params.id;
+  console.log(`PUT request for item with id: ${itemId}`);
+
+  const index = items.findIndex(item => item.id == itemId);
+
   // not found
   if (index === -1) {
+    console.log('Item not found');
     return res.sendStatus(404);
   }
+
   // bad request
   if (!req.body.name) {
+    console.log('Item name missing in request');
     return res.status(400).json({error: "item name missing"});
   }
+
+  console.log(`Updating item with id ${itemId} to new name: ${req.body.name}`);
+
+  // TODO: implement modify item
   items[index].name = req.body.name;
+
+  console.log(`Item updated successfully. Updated item details:`, items[index]);
   res.json({updated_item: items[index]});
 };
+
 
 
 export {getItems, getItemById, postItem, deleteItem, putItem};

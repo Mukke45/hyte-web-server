@@ -27,16 +27,58 @@ const getUsers = (req, res) => {
 
 const getUserById = (req, res) => {
   // TODO: implement this
+  console.log('requested item id', req.params.id);
+  const userFound = users.find(user => user.id == req.params.id);
+  console.log('found user', userFound);
+  if (userFound) {
+    res.json(userFound);
+  } else {
+    res.status(404).json({error: 'not found'});
+  }
   res.send('not working yet');
 };
 
 const postUser = (req, res) => {
   // TODO: implement this
+  console.log('postUser request body', req.body);
+  // error if name property is missing
+  if (!req.body.name) {
+    return res.status(400).json({error: "item name missing"});
+  }
+  // new id: add 1 to last id number in the items array
+  const newId = users[users.length-1].id + 1;
+  const newUser = {id: newId, name: req.body.name};
+  users.push(newUser);
+  res.status(201).json({message: 'user created'});
   res.send('not working yet');
 };
 
 const putUser = (req, res) => {
   // TODO: implement this
+  const userId = req.params.id;
+  console.log(`PUT request for item with id: ${userId}`);
+
+  const index = users.findIndex(user => user.id == userId);
+
+  // not found
+  if (index === -1) {
+    console.log('User not found');
+    return res.sendStatus(404);
+  }
+
+  // bad request
+  if (!req.body.name) {
+    console.log('User name missing in request');
+    return res.status(400).json({error: "item name missing"});
+  }
+
+  console.log(`Updating item with id ${userId} to new name: ${req.body.name}`);
+
+  // TODO: implement modify item
+  users[index].name = req.body.name;
+
+  console.log(`Item updated successfully. Updated item details:`, users[index]);
+  res.json({updated_item: users[index]});
   res.send('not working yet');
 };
 
