@@ -19,7 +19,9 @@ const users = [
   }
 ];
 
-// TODO: implement route handlers below for users
+
+// TODO: use userModel (db) instead of mock data
+// TODO: implement route handlers below for users (real data)
 
 const getUsers = (req, res) => {
   res.json(users);
