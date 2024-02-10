@@ -2,12 +2,18 @@
 import express from 'express';
 import path from 'path';
 import {fileURLToPath} from 'url';
+import cors from 'cors'
 import {getUserById, getUsers, postUser, postLogin, putUser} from './controllers/user-controller.mjs';
 import itemRouter from './routes/item-router.mjs';
+import entryRouter from './routes/entry-router.mjs';
 const hostname = '127.0.0.1';
 const port = 3000;
 const app = express();
 
+// bind base url for all entry routes to entryRouter
+app.use('/api/entries', entryRouter);
+app.use(cors());
+// Enable CORS for all routes
 app.use(express.json());
 // Staattinen sivusto palvelimen juureen (public-kansion sisältö näkyy osoitteessa http://127.0.0.1:3000/sivu.html)
 app.use(express.static('public'));
