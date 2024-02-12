@@ -10,8 +10,7 @@ const hostname = '127.0.0.1';
 const port = 3000;
 const app = express();
 
-// bind base url for all entry routes to entryRouter
-app.use('/api/entries', entryRouter);
+
 app.use(cors());
 // Enable CORS for all routes
 app.use(express.json());
@@ -40,6 +39,9 @@ app.post('/users/login', postLogin);
 // update user
 app.put('/users/:id', putUser);
 
+
+// bind base url for all entry routes to entryRouter
+app.use('/api/entries', entryRouter);
 
 // GET http://127.0.0.1:3000
 // ei toimi tällä hetkellä, koska public-server tarjoilee index.html:n ensin
