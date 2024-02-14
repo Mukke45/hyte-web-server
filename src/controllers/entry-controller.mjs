@@ -1,7 +1,16 @@
-import {listAllEntries, findEntryById, addEntry, updateEntry, deleteEntry as deleteEntryFromDB} from "../models/entry-model.mjs";
+import {
+  listAllEntries,
+  findEntryById,
+  addEntry,
+  deleteEntryById,
+  updateEntryById,
+} from '../models/entry-model.mjs';
 
 const getEntries = async (req, res) => {
   const result = await listAllEntries();
+  // TODO: return only logged in user's own entries
+  // - add listEntriesByUserId(id) to the model
+  // - get user's id from token (req.user.user_id)
   if (!result.error) {
     res.json(result);
   } else {
@@ -36,62 +45,26 @@ const postEntry = async (req, res) => {
 };
 
 const putEntry = async (req, res) => {
-  const entryId = req.params.id;
-  const { mood, weight, sleep_hours, notes } = req.body;
-
-  try {
-    // Check if the entry exists
-    const existingEntry = await findEntryById(entryId);
-    if (!existingEntry) {
-      return res.sendStatus(404); // Not Found
+  const entry_id = req.params.id;
+  const {entry_date, mood, weight, sleep_hours, notes} = req.body;
+  // check that all needed fields are included in request
+  if ((entry_date || weight || mood || sleep_hours || notes) && entry_id) {
+    const result = await updateEntryById({entry_id, ...req.body});
+    if (result.error) {
+      return res.status(result.error).json(result);
     }
-
-    // Update the entry
-    const updatedEntry = {
-      ...existingEntry,
-      mood: mood || existingEntry.mood,
-      weight: weight || existingEntry.weight,
-      sleep_hours: sleep_hours || existingEntry.sleep_hours,
-      notes: notes || existingEntry.notes,
-    };
-
-    // Perform the update
-    const result = await updateEntry(entryId, updatedEntry);
-
-    if (!result.error) {
-      res.json({ message: 'Entry updated successfully.', ...result });
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.error('Error updating entry:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(201).json(result);
+  } else {
+    return res.status(400).json({error: 400, message: 'bad request'});
   }
 };
 
-
 const deleteEntry = async (req, res) => {
-  const entryId = req.params.id;
-
-  try {
-    // Check if the entry exists
-    const existingEntry = await findEntryById(entryId);
-    if (!existingEntry) {
-      return res.sendStatus(404); // Not Found
-    }
-
-    // Delete the entry
-    const result = await deleteEntryFromDB(entryId);
-
-    if (!result.error) {
-      res.json({ message: 'Entry deleted successfully.' });
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.error('Error deleting entry:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  const result = await deleteEntryById(req.params.id);
+  if (result.error) {
+    return res.status(result.error).json(result);
   }
+  return res.json(result);
 };
 
 export {getEntries, getEntryById, postEntry, putEntry, deleteEntry};

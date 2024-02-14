@@ -1,6 +1,11 @@
-import {listAllUsers, selectUserById, addUser, updateUser, deleteUser} from "../models/user-model.mjs";
+import {
+  deleteUserById,
+  insertUser,
+  listAllUsers,
+  selectUserById,
+  updateUserById,
+} from '../models/user-model.mjs';
 
-// TODO: implement route handlers below for users (real data)
 
 const getUsers = async (req, res) => {
   const result = await listAllUsers();
@@ -19,90 +24,40 @@ const getUserById = async (req, res) => {
 };
 
 const postUser = async (req, res) => {
-  try {
-    const result = await addUser(req.body);
+  const {username, password, email} = req.body;
+  // check that all needed fields are included in request
+  if (username && password && email) {
+    const result = await insertUser(req.body);
     if (result.error) {
       return res.status(result.error).json(result);
     }
-    return res.status(201).json(result); // 201 Created status for successful resource creation
-  } catch (error) {
-    console.error('postUser', error);
-    return res.status(500).json({ error: 500, message: 'Internal server error' });
+    return res.status(201).json(result);
+  } else {
+    return res.status(400).json({error: 400, message: 'bad request'});
   }
 };
 
 const putUser = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const updatedUserData = req.body;
-
-    // Check if the user exists
-    const existingUser = await selectUserById(userId);
-    if (existingUser.error) {
-      return res.status(existingUser.error).json(existingUser);
-    }
-
-    // Merge existing user data with updated data
-    const updatedUser = { ...existingUser, ...updatedUserData };
-
-    // Update the user in the database
-    // Assuming you have a function named updateUser in your user-model.mjs file
-    // Implement the updateUser function accordingly
-    const result = await updateUser(userId, updatedUser);
-
+  const user_id = req.params.id;
+  const {username, password, email} = req.body;
+  // check that all needed fields are included in request
+  if (user_id && username && password && email) {
+    const result = await updateUserById({user_id, ...req.body});
     if (result.error) {
       return res.status(result.error).json(result);
     }
-
-    return res.json(result);
-  } catch (error) {
-    console.error('putUser', error);
-    return res.status(500).json({ error: 500, message: 'Internal server error' });
-  }
-};
-
-const deleteUserById = async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    // Check if the user exists
-    const existingUser = await selectUserById(userId);
-    if (existingUser.error) {
-      return res.status(existingUser.error).json(existingUser);
-    }
-
-    // Delete the user from the database
-    const result = await deleteUser(userId);
-
-    if (result.error) {
-      return res.status(result.error).json(result);
-    }
-
-    return res.json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error('deleteUserById', error);
-    return res.status(500).json({ error: 500, message: 'Internal server error' });
-  }
-};
-
-
-// Dummy login with mock data, returns user object if username & password match
-const postLogin = (req, res) => {
-  const userCreds = req.body;
-  if (!userCreds.username || !userCreds.password) {
-    return res.sendStatus(400);
-  }
-  const userFound = users.find(user => user.username == userCreds.username);
-  // user not found
-  if (!userFound) {
-    return res.status(403).json({error: 'username/password invalid'});
-  }
-  // check if posted password matches to user found password
-  if (userFound.password === userCreds.password) {
-    res.json({message: 'logged in successfully', user: userFound});
+    return res.status(201).json(result);
   } else {
-    return res.status(403).json({error: 'username/password invalid'});
+    return res.status(400).json({error: 400, message: 'bad request'});
   }
 };
 
-export {getUsers, getUserById, postUser, putUser, postLogin, deleteUserById};
+const deleteUser = async (req, res) => {
+  const result = await deleteUserById(req.params.id);
+  if (result.error) {
+    return res.status(result.error).json(result);
+  }
+  return res.json(result);
+};
+
+export {getUsers, getUserById, postUser, putUser, deleteUser};

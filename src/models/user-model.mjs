@@ -1,10 +1,10 @@
-import promisePool from '../utils/database.mjs';
+import promisePool from '../utils/database.mjs';console.log
 
 const listAllUsers = async () => {
   try {
     const sql = 'SELECT user_id, username, user_level FROM Users';
     const [rows] = await promisePool.query(sql);
-    console.log(rows);
+    //console.log(rows);
     return rows;
   } catch (error) {
     console.error('listAllUsers', error);
@@ -17,7 +17,7 @@ const selectUserById = async (id) => {
     const sql = 'SELECT * FROM Users WHERE user_id=?';
     const params = [id];
     const [rows] = await promisePool.query(sql, params);
-    console.log(rows);
+    //console.log(rows);
     // if nothing is found with the user id, result array is empty []
     if (rows.length === 0) {
       return {error: 404, message: 'user not found'};
@@ -26,94 +26,84 @@ const selectUserById = async (id) => {
     delete rows[0].password;
     return rows[0];
   } catch (error) {
-    console.error('listAllUsers', error);
+    console.error('selectUserById', error);
     return {error: 500, message: 'db error'};
   }
 };
 
-
-const addUser = async (user) => {
+const insertUser = async (user) => {
   try {
-    const { username, password, email, user_level } = user;
-
-    // Validate required fields
-    if (!username || !password || !email || !user_level) {
-      return { error: 400, message: 'All fields (username, password, email, user_level) are required' };
-    }
-
-    // Insert new user into the database with 'created_at' set to NULL
-    const sql = `
-      INSERT INTO Users (username, password, email, user_level)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    const params = [username, password, email, user_level];
+    const sql =
+      'INSERT INTO Users (username, password, email) VALUES (?, ?, ?)';
+    const params = [user.username, user.password, user.email];
     const [result] = await promisePool.query(sql, params);
-
-    // Return the newly created user
-    const createdUserId = result.insertId;
-    const createdUser = await selectUserById(createdUserId);
-
-    return createdUser;
+    //console.log(result);
+    return {message: 'new user created', user_id: result.insertId};
   } catch (error) {
-    console.error('addUser', error);
-    return { error: 500, message: 'Internal server error' };
+    // now duplicate entry error is generic 500 error, should be fixed to 400 ?
+    console.error('insertUser', error);
+    return {error: 500, message: 'db error'};
   }
 };
 
-const updateUser = async (userId, updatedUserData) => {
+const updateUserById = async (user) => {
   try {
-    // Extract fields from updatedUserData
-    const { username, password, email, user_level } = updatedUserData;
-
-    // Validate required fields
-    if (!username || !password || !email || !user_level) {
-      return { error: 400, message: 'All fields (username, password, email, user_level) are required' };
-    }
-
-    // Update user in the database
-    const sql = `
-      UPDATE Users
-      SET username=?, password=?, email=?, user_level=?
-      WHERE user_id=?
-    `;
-
-    const params = [username, password, email, user_level, userId];
+    const sql =
+      'UPDATE Users SET username=?, password=?, email=? WHERE user_id=?';
+    const params = [user.username, user.password, user.email, user.user_id];
     const [result] = await promisePool.query(sql, params);
-
-    // Check if the user was successfully updated
-    if (result.affectedRows === 0) {
-      return { error: 404, message: 'User not found' };
-    }
-
-    // Return the updated user
-    const updatedUser = await selectUserById(userId);
-
-    return updatedUser;
+    // console.log(result);
+    return {message: 'user data updated', user_id: user.user_id};
   } catch (error) {
-    console.error('updateUser', error);
-    return { error: 500, message: 'Internal server error' };
+    // fix error handling
+    // now duplicate entry error is generic 500 error, should be fixed to 400 ?
+    console.error('updateUserById', error);
+    return {error: 500, message: 'db error'};
   }
 };
 
-
-const deleteUser = async (userId) => {
+const deleteUserById = async (id) => {
   try {
     const sql = 'DELETE FROM Users WHERE user_id=?';
-    const params = [userId];
+    const params = [id];
     const [result] = await promisePool.query(sql, params);
-
-    // Check if the user was successfully deleted
+    // console.log(result);
     if (result.affectedRows === 0) {
-      return { error: 404, message: 'User not found' };
+      return {error: 404, message: 'user not found'};
     }
-
-    return { message: 'User deleted successfully' };
+    return {message: 'user deleted', user_id: id};
   } catch (error) {
-    console.error('deleteUser', error);
-    return { error: 500, message: 'Internal server error' };
+    // note that users with other data (FK constraint) cant be deleted directly
+    console.error('deleteUserById', error);
+    return {error: 500, message: 'db error'};
   }
 };
 
+// Used for login
+const selectUserByNameAndPassword = async (username, password) => {
+  try {
+    const sql = 'SELECT * FROM Users WHERE username=? AND password=?';
+    const params = [username, password];
+    const [rows] = await promisePool.query(sql, params);
+    //console.log(rows);
+    // if nothing is found with the username and password, login attempt has failed
+    if (rows.length === 0) {
+      return {error: 401, message: 'invalid username or password'};
+    }
+    // Otherwise, remove password property from the result and return the user object
+    delete rows[0].password;
+    return rows[0];
+  } catch (error) {
+    console.error('selectUserByNameAndPassword', error);
+    return {error: 500, message: 'db error'};
+  }
+};
 
-export {listAllUsers, selectUserById, addUser, updateUser, deleteUser};
+export {
+  listAllUsers,
+  selectUserById,
+  insertUser,
+  updateUserById,
+  deleteUserById,
+  selectUserByNameAndPassword,
+};

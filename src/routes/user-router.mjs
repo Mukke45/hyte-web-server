@@ -3,9 +3,8 @@ import {
   getUserById,
   getUsers,
   postUser,
-  postLogin,
   putUser,
-  deleteUserById,
+  deleteUser,
 } from '../controllers/user-controller.mjs';
 
 const userRouter = express.Router();
@@ -23,10 +22,7 @@ userRouter.route('/:id')
   .get(getUserById)
   // update user
   .put(putUser)
-  // delete user
-  .delete(deleteUserById);
-
-// user login
-userRouter.post('/login', postLogin);
+  // delete user based on id
+  .delete(deleteUser);
 
 export default userRouter;
