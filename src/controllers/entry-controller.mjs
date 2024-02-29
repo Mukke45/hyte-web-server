@@ -1,5 +1,4 @@
 import {
-  listAllEntries,
   findEntryById,
   addEntry,
   deleteEntryById,
@@ -29,8 +28,17 @@ const getEntryById = async (req, res) => {
 };
 
 const postEntry = async (req, res) => {
-  const {user_id, entry_date, mood, weight, sleep_hours, notes} = req.body;
-  if (entry_date && (weight || mood || sleep_hours || notes) && user_id) {
+  // Destruct properties from req.body to separate variables,
+  // convert property names with underscores to camelCase variable names
+  const {
+    user_id: userId,
+    entry_date: entryDate,
+    mood,
+    weight,
+    sleep_hours: sleepHours,
+    notes,
+  } = req.body;
+  if (entryDate && (weight || mood || sleepHours || notes) && userId) {
     const result = await addEntry(req.body);
     if (result.entry_id) {
       res.status(201);
@@ -45,11 +53,19 @@ const postEntry = async (req, res) => {
 };
 
 const putEntry = async (req, res) => {
-  const entry_id = req.params.id;
-  const {entry_date, mood, weight, sleep_hours, notes} = req.body;
+  const entryId = req.params.id;
+  // Destruct properties from req.body to separate variables,
+  // convert property names with underscores to camelCase variable names
+  const {
+    entry_date: entryDate,
+    mood,
+    weight,
+    sleep_hours: sleepHours,
+    notes,
+  } = req.body;
   // check that all needed fields are included in request
-  if ((entry_date || weight || mood || sleep_hours || notes) && entry_id) {
-    const result = await updateEntryById({entry_id, ...req.body});
+  if ((entryDate || weight || mood || sleepHours || notes) && entryId) {
+    const result = await updateEntryById({entry_id: entryId, ...req.body});
     if (result.error) {
       return res.status(result.error).json(result);
     }

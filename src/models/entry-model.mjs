@@ -29,8 +29,8 @@ const listAllEntriesByUserId = async (id) => {
 const findEntryById = async (id) => {
   try {
     const [rows] = await promisePool.query(
-        'SELECT * FROM DiaryEntries WHERE entry_id = ?',
-        [id],
+      'SELECT * FROM DiaryEntries WHERE entry_id = ?',
+      [id],
     );
     // console.log('rows', rows);
     return rows[0];
@@ -41,10 +41,17 @@ const findEntryById = async (id) => {
 };
 
 const addEntry = async (entry) => {
-  const {user_id, entry_date, mood, weight, sleep_hours, notes} = entry;
-  const sql = `INSERT INTO DiaryEntries (user_id, entry_date, mood, weight, sleep_hours, notes)
-  VALUES (?, ?, ?, ?, ?, ?)`;
-  const params = [user_id, entry_date, mood, weight, sleep_hours, notes];
+  const sql = `INSERT INTO DiaryEntries
+               (user_id, entry_date, mood, weight, sleep_hours, notes)
+               VALUES (?, ?, ?, ?, ?, ?)`;
+  const params = [
+    entry.user_id,
+    entry.entry_date,
+    entry.mood,
+    entry.weight,
+    entry.sleep_hours,
+    entry.notes,
+  ];
   try {
     // change query method?
     const rows = await promisePool.query(sql, params);
@@ -57,17 +64,25 @@ const addEntry = async (entry) => {
 };
 
 const updateEntryById = async (entry) => {
-  const {entry_id, entry_date, mood, weight, sleep_hours, notes} = entry;
   try {
     const sql =
-      'UPDATE DiaryEntries SET entry_date=?, mood=?, weight=?, sleep_hours=?, notes=? WHERE entry_id=?';
-    const params = [entry_date, mood, weight, sleep_hours, notes, entry_id];
+      `UPDATE DiaryEntries
+       SET entry_date=?, mood=?, weight=?, sleep_hours=?, notes=?
+       WHERE entry_id=?`;
+    const params = [
+      entry.entry_date,
+      entry.mood,
+      entry.weight,
+      entry.sleep_hours,
+      entry.notes,
+      entry.entry_id,
+    ];
     const [result] = await promisePool.query(sql, params);
     // console.log(result);
     if (result.affectedRows === 0) {
       return {error: 404, message: 'entry not found'};
     }
-    return {message: 'entry data updated', entry_id};
+    return {message: 'entry data updated', entry_id: entry.entry_id};
   } catch (error) {
     // fix error handling
     // now duplicate entry error is generic 500 error, should be fixed to 400 ?
