@@ -29,11 +29,11 @@ const listAllEntriesByUserId = async (id) => {
 const findEntryById = async (id) => {
   try {
     const [rows] = await promisePool.query(
-      'SELECT * FROM DiaryEntries WHERE entry_id = ?',
+      'SELECT * FROM DiaryEntries WHERE user_id = ?',
       [id],
     );
     // console.log('rows', rows);
-    return rows[0];
+    return rows;
   } catch (e) {
     console.error('error', e.message);
     return {error: e.message};
